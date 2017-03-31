@@ -1,0 +1,8 @@
+name: ExsiteStatus
+author: Exsite
+main: ru.exsite.status.Spigot
+version: 1.0
+
+commands:
+  exsitestatus:
+    aliases: [status, exstatus]
