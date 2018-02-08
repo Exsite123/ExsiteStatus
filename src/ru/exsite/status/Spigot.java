@@ -8,8 +8,6 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.event.Listener;
 import org.bukkit.plugin.java.JavaPlugin;
 
-
-
 public class Spigot extends JavaPlugin implements Listener {
 	
 	public static int timer;
@@ -18,9 +16,13 @@ public class Spigot extends JavaPlugin implements Listener {
 	public static int Record;
 	public static long TimeRecord;
 	public static String Status;
-	public static String FormatDate;
+	public static String RecordFormatDate;
 	public static Spigot plugin;
-	private static int online;
+	public static int online;
+	public static int TempRecord;
+	public static long TempRecordTime;
+	public static String TempFormatDate;
+	public static long lastupdate;
 	
 	public void onEnable() {
 		plugin = this;
@@ -36,17 +38,34 @@ public class Spigot extends JavaPlugin implements Listener {
 	}
 	
 	public void update() {
+		online = Bukkit.getOnlinePlayers().size();
+		if(online > Record) {
+			Record = online;
+			plugin.getConfig().set("Record.number", online);
+			TimeRecord = System.currentTimeMillis();
+			plugin.getConfig().set("Record.time", TimeRecord);
+			plugin.saveConfig();
+		}
+		if(!Utils.getUnixTime(System.currentTimeMillis(), TempFormatDate).equals(Utils.getUnixTime(lastupdate, TempFormatDate))) {
+			TempRecord = online;
+			plugin.getConfig().set("TempRecord.number", online);
+			TempRecordTime = System.currentTimeMillis();
+			plugin.getConfig().set("TempRecord.time", TempRecordTime);
+			lastupdate = System.currentTimeMillis();
+			plugin.getConfig().set("TempRecord.lastupdate", lastupdate);
+			plugin.saveConfig();
+		} else {
+			if(online > TempRecord) {
+				TempRecord = online;
+				plugin.getConfig().set("TempRecord.number", online);
+				TempRecordTime = System.currentTimeMillis();
+				plugin.getConfig().set("TempRecord.time", TempRecordTime);
+				plugin.saveConfig();
+			}
+		}
+		String msg = Status.replace("%online", ""+online).replace("%temprecord", ""+TempRecord).replace("%temprectime", ""+Utils.getUnixTime(TempRecordTime, TempFormatDate)).replace("%record", ""+Record).replace("%rectime", Utils.getUnixTime(TimeRecord, RecordFormatDate));
 		for(int r:Groups) {
 			try {
-				online = Bukkit.getOnlinePlayers().size();
-				if(online > Record) {
-					Record = online;
-					plugin.getConfig().set("Record.number", online);
-					TimeRecord = System.currentTimeMillis();
-					plugin.getConfig().set("Record.time", TimeRecord);
-					plugin.saveConfig();
-				}
-				String msg = Status.replace("%online", ""+online).replace("%record", ""+Record).replace("%rectime", Utils.getUnixTime(TimeRecord, FormatDate));
 				Utils.setStatus(msg, r, Token);
 			} catch (Exception e) {
 				e.printStackTrace();
@@ -61,7 +80,11 @@ public class Spigot extends JavaPlugin implements Listener {
 		Record = this.getConfig().getInt("Record.number");
 		TimeRecord = this.getConfig().getLong("Record.time");
 		Status = this.getConfig().getString("Status");
-		FormatDate = this.getConfig().getString("Record.FormatDate");
+		RecordFormatDate = this.getConfig().getString("Record.FormatDate");
+		TempRecord = this.getConfig().getInt("TempRecord.number");
+		TempRecordTime = this.getConfig().getLong("TempRecord.time");
+		TempFormatDate = this.getConfig().getString("TempRecord.FormatDate");
+		lastupdate = this.getConfig().getLong("TempRecord.lastupdate");
 	}
 	
 	public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
@@ -76,6 +99,7 @@ public class Spigot extends JavaPlugin implements Listener {
 			sender.sendMessage("§c/"+label+" update §8- §6Обновить данные");
 			sender.sendMessage("§c/"+label+" reload §8- §6Перезапустить конфигурации");
 			sender.sendMessage("");
+			
 		}
 		else {
 			switch (args[0].toLowerCase()) {
@@ -88,8 +112,12 @@ public class Spigot extends JavaPlugin implements Listener {
 				sender.sendMessage("§cExsiteStatus §8» §6Информация.");
 				sender.sendMessage("");
 				sender.sendMessage("§6Онлайн сервера: §c"+online);
+				sender.sendMessage("");
 				sender.sendMessage("§6Рекорд онлайна: §c"+Record);
-				sender.sendMessage("§6Защитан рекорд: §c"+Utils.getUnixTime(TimeRecord, FormatDate));
+				sender.sendMessage("§6Зафиксирован рекорд: §c"+Utils.getUnixTime(TimeRecord, RecordFormatDate));
+				sender.sendMessage("");
+				sender.sendMessage("§6Суточный рекорд: §c"+TempRecord);
+				sender.sendMessage("§6Зафиксирован рекорд: §c"+Utils.getUnixTime(TempRecordTime, TempFormatDate));
 				sender.sendMessage("");
 				break;
 			case "update":

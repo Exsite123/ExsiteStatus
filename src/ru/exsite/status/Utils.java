@@ -8,14 +8,14 @@ import java.net.URLConnection;
 import java.net.URLEncoder;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 
 public class Utils {
-	public static void setStatus(String status, int id, String token) throws Exception { 
+
+	public static void setStatus(String status, int id, String token) throws Exception {
 		String Message = urlEncode(status);
-		URLConnection connection = new URL("https://api.vk.com/method/status.set?text="+Message+"&group_id="+id+"&access_token="+token).openConnection();
+		URLConnection connection = new URL("https://api.vk.com/method/status.set?text="+Message+"&group_id="+id+"&v=5.71&access_token="+token).openConnection();
 	    InputStream is = connection.getInputStream();
 	    InputStreamReader reader = new InputStreamReader(is);
 	    char[] buffer = new char[256];
@@ -27,9 +27,12 @@ public class Utils {
 	    String response = getJson(sb.toString());
 	    if(response != null) {
 	    	System.out.println("[ExsiteStatus] Error: "+response);
+	    	if(response.equals("Captcha needed")) {
+		    	System.out.println(sb);
+		    }
 	    }
 	}
-	
+
 	public static String urlEncode(final String text) {
 	    try {
 	        return URLEncoder.encode(text, "UTF-8");
@@ -37,7 +40,8 @@ public class Utils {
 	        return text;
 	    }
 	}
-	
+
+
 	public static String getUnixTime(long l, String format) {
 		SimpleDateFormat SDF = new SimpleDateFormat(format);
 		String date = SDF.format(new Date(l));
@@ -46,7 +50,7 @@ public class Utils {
 		}
 		return null;
 	}
-	
+
 	public static String getJson(String Json) throws Exception {
 		JSONParser parser = new JSONParser();
 		JSONObject jsonObj = (JSONObject) parser.parse(Json);

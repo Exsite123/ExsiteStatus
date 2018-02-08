@@ -14,23 +14,27 @@ import net.md_5.bungee.config.YamlConfiguration;
 
 
 public class Bungee extends Plugin implements Listener {
-	
+
 	public static int timer;
 	public static List<Integer> Groups;
 	public static String Token;
 	public static int Record;
 	public static long TimeRecord;
 	public static String Status;
-	public static String FormatDate;
+	public static String RecordFormatDate;
 	public static Bungee plugin;
-	private static int online;
+	public static int online;
 	public Configuration config;
-	
+	public static int TempRecord;
+	public static long TempRecordTime;
+	public static String TempFormatDate;
+	public static long lastupdate;
+
 	public void onEnable() {
 		plugin = this;
 		getProxy().getPluginManager().registerListener(this, this);
         getProxy().getPluginManager().registerCommand(this, new Command("exsitestatus", null, new String[] { "status", "exstatus" }) {
-            @SuppressWarnings("deprecation")
+
 			@Override
             public void execute(CommandSender sender, String[] args) {
             	if (args.length == 0) {
@@ -56,8 +60,12 @@ public class Bungee extends Plugin implements Listener {
         				sender.sendMessage("§cExsiteStatus §8» §6Информация.");
         				sender.sendMessage("");
         				sender.sendMessage("§6Онлайн сервера: §c"+online);
+        				sender.sendMessage("");
         				sender.sendMessage("§6Рекорд онлайна: §c"+Record);
-        				sender.sendMessage("§6Защитан рекорд: §c"+Utils.getUnixTime(TimeRecord, FormatDate));
+        				sender.sendMessage("§6Зафиксирован рекорд: §c"+Utils.getUnixTime(TimeRecord, RecordFormatDate));
+        				sender.sendMessage("");
+        				sender.sendMessage("§6Суточный рекорд: §c"+TempRecord);
+        				sender.sendMessage("§6Зафиксирован рекорд: §c"+Utils.getUnixTime(TempRecordTime, TempFormatDate));
         				sender.sendMessage("");
         				break;
         			case "update":
@@ -90,7 +98,7 @@ public class Bungee extends Plugin implements Listener {
             }
 		}, 0L, timer, TimeUnit.SECONDS);
 	}
-		
+
 	private void saveDefaultConfig() {
         try {
             if(!this.getDataFolder().exists()) {
@@ -111,21 +119,38 @@ public class Bungee extends Plugin implements Listener {
 	}
 
 	public void update() {
-		for(int r:Groups) {
-			try {
-				online = plugin.getProxy().getOnlineCount();
-				if(online > Record) {
-					Record = online;
-					config.set("Record.number", online);
-					TimeRecord = System.currentTimeMillis();
-					config.set("Record.time", TimeRecord);
+		try {
+			online = plugin.getProxy().getOnlineCount();
+			if(online > Record) {
+				Record = online;
+				config.set("Record.number", online);
+				TimeRecord = System.currentTimeMillis();
+				config.set("Record.time", TimeRecord);
+				ConfigurationProvider.getProvider(YamlConfiguration.class).save(config, new File(this.getDataFolder(), "config.yml"));
+			}
+			if(!Utils.getUnixTime(System.currentTimeMillis(), TempFormatDate).equals(Utils.getUnixTime(lastupdate, TempFormatDate))) {
+				TempRecord = online;
+				config.set("TempRecord.number", online);
+				TempRecordTime = System.currentTimeMillis();
+				config.set("TempRecord.time", TempRecordTime);
+				lastupdate = System.currentTimeMillis();
+				config.set("TempRecord.lastupdate", lastupdate);
+				ConfigurationProvider.getProvider(YamlConfiguration.class).save(config, new File(this.getDataFolder(), "config.yml"));
+			} else {
+				if(online > TempRecord) {
+					TempRecord = online;
+					config.set("TempRecord.number", online);
+					TempRecordTime = System.currentTimeMillis();
+					config.set("TempRecord.time", TempRecordTime);
 					ConfigurationProvider.getProvider(YamlConfiguration.class).save(config, new File(this.getDataFolder(), "config.yml"));
 				}
-				String msg = Status.replace("%online", ""+online).replace("%record", ""+Record).replace("%rectime", Utils.getUnixTime(TimeRecord, FormatDate));
-				Utils.setStatus(msg, r, Token);
-			} catch (Exception e) {
-				e.printStackTrace();
 			}
+			String msg = Status.replace("%online", ""+online).replace("%temprecord", ""+TempRecord).replace("%temprectime", ""+Utils.getUnixTime(TempRecordTime, TempFormatDate)).replace("%record", ""+Record).replace("%rectime", Utils.getUnixTime(TimeRecord, RecordFormatDate));
+			for(int r:Groups) {
+				Utils.setStatus(msg, r, Token);
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
 		}
 	}
 
@@ -136,6 +161,10 @@ public class Bungee extends Plugin implements Listener {
 		Record = config.getInt("Record.number");
 		TimeRecord = config.getLong("Record.time");
 		Status = config.getString("Status");
-		FormatDate = config.getString("Record.FormatDate");
+		RecordFormatDate = config.getString("Record.FormatDate");
+		TempRecord = config.getInt("TempRecord.number");
+		TempRecordTime = config.getLong("TempRecord.time");
+		TempFormatDate = config.getString("TempRecord.FormatDate");
+		lastupdate = config.getLong("TempRecord.lastupdate");
 	}
 }

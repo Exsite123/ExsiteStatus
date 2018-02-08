@@ -1,10 +1,14 @@
 Timer: 60
-Token: f93e49dd3d6f45b32e70144dec9b14b16f522fd6ce43ab465e5ccfa421491bf5882b1331ea0173c228b28
+Token: f93e49dd3d6f45b32e70144dec9b14b16f522fd6ce43ab5882b1331ea0173c228b28
 Groups:
-- 53485578
+- 65102476
 Record:
   number: 0
   time: 0
-  FormatDate: dd.MM.yyyy HH:mm:ss
-Status: 'Онлайн: %online | Рекорд: %record, зафиксировано: %rectime | IP: Mc.FunnyWorld.Su
-  [1.8-1.11]'
+  FormatDate: dd.MM.yyyy HH:mm
+TempRecord:
+  number: 0
+  time: 0
+  FormatDate: dd.MM.yyyy
+  lastupdate: 0
+Status: 'Онлайн: %online | Суточный рекорд: %temprecord, зафиксирован: %temprectime | Рекорд: %record, зафиксирован: %rectime | IP: PVP.GRIEFLAND.RU [1.8-1.12.2]'
